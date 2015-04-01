@@ -2,6 +2,7 @@ exception BadArgumentsError
 exception NotAuthorizedError
 exception NotEnoughArgumentsError of string
 exception UnknownGitError
+exception InvalidArgument of string 
 
 type author = { name:string; email:string; }
 
@@ -45,3 +46,36 @@ let rec parse_json_arguments_list = function
 			| _ -> args
 
 
+
+(* Some functions to manipulate URI *)
+
+
+(** Apply f increasingly. For instance, for a path /home/user/test, it is called on /home, /home/user, /home/user/test *)
+let split_char_increasing sep str f =
+	let rec sp_aux str old_str =
+		try
+			let i = String.index str sep in
+			(f :wa(String.sub str 0 i)) ::
+			sp_aux (String.sub str (i+1) (String.length str - i - 1)) (old_str ^ (String.sub str 0 i))
+		with Not_found ->
+			[f (old_str ^ str)]
+	in sp_aux str ""
+
+(** Return (true, end_of_uri), or (false, "") if it is not a valid uri *)
+let is_valid_uri s =
+	let length = String.length s in
+	if length < 8 then
+		(false, "")
+	else
+		if String.sub s 0 8 = "https://" then
+			(true, String.sub s 8 (length - 8))
+		else if String.sub s 0 7 = "http://" then
+			(true, String.sub s 8 (length - 8))
+		else
+			(false, "")
+
+let ensure_path_exist path =
+	split_char_increasing '/' path print_string
+
+let _ = ensure_path_exist "/tmp/test/re-test/rere-test/"
+	
