@@ -1,0 +1,3 @@
+exception BadArgumentsError
+exception NotAuthorizedError
+exception NotEnoughArgumentsError
