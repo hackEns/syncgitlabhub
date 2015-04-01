@@ -1,0 +1,5 @@
+(* Path where we can store the git repositories. It must exist with the
+   appropriate permission. *)
+path_git = "/tmp/git"
+(* GitHub user *)
+github_user = hackens

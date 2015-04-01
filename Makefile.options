@@ -6,12 +6,12 @@
 PROJECT_NAME := syncgit
 
 # Source files for the server
-SERVER_FILES := syncgitcore.ml $(wildcard *.eliomi *.eliom)
+SERVER_FILES := syncgitcore.ml syncgitconfig.eliom $(wildcard *.eliomi *.eliom)
 # Source files for the client
 CLIENT_FILES := $(wildcard *.eliomi *.eliom)
 
 # OCamlfind packages for the server
-SERVER_PACKAGES := yojson
+SERVER_PACKAGES := yojson config-file
 # OCamlfind packages for the client
 CLIENT_PACKAGES :=
 
