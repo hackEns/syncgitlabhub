@@ -55,7 +55,7 @@ let split_char_increasing sep str f =
 	let rec sp_aux str old_str =
 		try
 			let i = String.index str sep in
-			(f :wa(String.sub str 0 i)) ::
+			(f (String.sub str 0 i)) ::
 			sp_aux (String.sub str (i+1) (String.length str - i - 1)) (old_str ^ (String.sub str 0 i))
 		with Not_found ->
 			[f (old_str ^ str)]
