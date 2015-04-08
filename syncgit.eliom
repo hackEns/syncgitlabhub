@@ -67,9 +67,13 @@ let _ =
                     end
                     | _ -> raise BadArgumentsError
             with
-                | BadArgumentsError -> send_error "Data not sent in a supported format, probably not JSON."
-                | NotEnoughArgumentsError(a) -> send_error ("Not enough arguments in the POST request: " ^ a ^ " missing")
-                | NotAuthorizedError -> send_error "Not authorized to sync this repository."
-                | InvalidArgument(a) -> send_error ("Invalid argument: " ^ a ^ " missing")
+                | BadArgumentsError ->
+					send_error "Data not sent in a supported format, probably not JSON."
+                | NotEnoughArgumentsError(a) ->
+					send_error ("Not enough arguments in the POST request: " ^ a ^ " missing")
+                | NotAuthorizedError ->
+					send_error "Not authorized to sync this repository."
+                | InvalidArgument(a) ->
+					send_error ("Invalid argument: " ^ a ^ " missing")
 
         )
