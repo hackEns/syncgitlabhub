@@ -71,7 +71,7 @@ let main_service_handler target_repo_opt post_args =
 let _ =
     let api_no_post = Syncgit_app.register_service
         ~path:[]
-        ~get_params:Eliom_parameter.(suffix (opt (string "user" ** string "repo")))
+        ~get_params:Eliom_parameter.(suffix ((opt (string "user")) ** (opt (string "repo"))))
         (fun v () -> Lwt.return
             (html
                 ~title:"syncgit"
@@ -82,8 +82,8 @@ let _ =
         ~fallback:api_no_post
         ~post_params:Eliom_parameter.(raw_post_data)
         (function
-			| Some (user_get, repo_get) ->
+			| (Some user_get, Some repo_get) ->
 				let target_repo = Some (user_get ^ "/" ^ repo_get) in
 				main_service_handler target_repo
-			| None -> main_service_handler None
+			| _ -> main_service_handler None
 		)

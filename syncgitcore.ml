@@ -67,7 +67,8 @@ let rec parse_json_arguments_list = function
 (* Some functions to manipulate URI *)
 
 
-(** Apply f increasingly. For instance, for a path /home/user/test, it is called on /home, /home/user, /home/user/test *)
+(** Apply f increasingly. For instance, for a path /home/user/test,
+    it is called on /home, /home/user, /home/user/test *)
 let split_char_increasing sep str f =
 	let rec sp_aux str old_str =
 		try
@@ -103,8 +104,9 @@ let is_valid_uri s =
 		else
 			(false, "")
 
-(** If we know that path doesn't exist, this function can be used to create path and every parent of it if needed.
-    Poor permissions management, use it with caution. Throws some Unix_error if it can't be created. *)
+(** If we know that path doesn't exist, this function can be used to create
+    path and every parent of it if needed. Poor permissions management, use
+	it with caution. Throws some Unix_error if it can't be created. *)
 let ensure_path_exist path =
 	let _ = split_char_increasing '/' path (fun s ->
 		try
