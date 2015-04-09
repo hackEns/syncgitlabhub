@@ -25,6 +25,10 @@ Tricks to compile ocaml code
 To use Lwt, Thread, and Unix together:
 ocamlfind ocamlc -package lwt -thread unix.cma threads.cma bigarray.cma lwt.cma lwt-unix.cma syncgitcore.ml syncgitpush.ml
 
+Issues
+------
+Only sync the master branch of every git repository at this moment.
+
 
 Instructions
 ============

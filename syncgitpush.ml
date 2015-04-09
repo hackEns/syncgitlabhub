@@ -43,7 +43,7 @@ let do_sync repo_state target_repository_opt =
 			end;
 
 			Unix.chdir project_path;
-			let WEXITED i = Lwt_main.run (Lwt_process.exec ("git", [|"git";"push";Syncgitconfig.github_url ^ target_repository;|])) in
+			let WEXITED i = Lwt_main.run (Lwt_process.exec ("git", [|"git";"push";Syncgitconfig.github_url ^ target_repository;"master"|])) in
 			if i == 0 then
 				target_repository
 			else
