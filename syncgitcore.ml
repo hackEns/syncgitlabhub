@@ -7,31 +7,42 @@ exception UnknownGitPullError
 exception UnknownGitPushError
 exception InvalidArgument of string 
 
+(** These first two records are not used yet. *)
 type author = { name:string; email:string; }
 
 type commit = { id: string; message: string; url: string; author: author; }
 
 type repository = {
+	(** Used to clone the repository. *)
 	source_http_url: string option;
+	(** Not used yet, but should be an alternative to http if the future. *)
 	source_ssh_url: string option;
+	(** Name of the repository, for instance "PassManager" *)
 	name:string option;
 	}
 
+(** This record is used when a POST request is received: most arguments directly get to it. *)
 type repository_state = {
 	repository: repository;
 	commits: commit list;
 }
 
 let repository_empty = { source_http_url = None; source_ssh_url = None; name = None; }
+
 let repository_state_empty = {
 	repository = repository_empty;
 	commits = [];
 }
 
+(** This must only be used when the first argument is surely a Some and not a
+    None (if it is not the first time it is used). For concision only. *)
 let args_str = function
 	| Some s -> s
 	| None -> raise (InvalidArgument "")
 
+(** Takes a YoJson record, returns the corresponding repository record.
+    See the gitlab reference web api, this thing corresponds to the
+	repository subdictionary.*)
 let rec parse_json_repository = function
 	| [] -> repository_empty
 	| t::q ->
@@ -92,6 +103,8 @@ let is_valid_uri s =
 		else
 			(false, "")
 
+(** If we know that path doesn't exist, this function can be used to create path and every parent of it if needed.
+    Poor permissions management, use it with caution. Throws some Unix_error if it can't be created. *)
 let ensure_path_exist path =
 	let _ = split_char_increasing '/' path (fun s ->
 		try
@@ -101,5 +114,3 @@ let ensure_path_exist path =
 		with
 			Unix.Unix_error(Unix.EEXIST, _, _) -> ()) in ()
 
-let _ = ensure_path_exist "/tmp/test/re-test/rere-test/"
-	
