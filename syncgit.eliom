@@ -16,11 +16,10 @@ module Syncgit_app =
     end)
 
 open Eliom_tools.F
-(*let main_service =
-  Eliom_service.App.service ~path:[] ~get_params:Eliom_parameter.unit ()*)
 
 let send_error str =
-    Lwt.return
+	Ocsigen_messages.errlog str;
+	Lwt.return
         (html ~title:"error" (body [pcdata ("Error: " ^ str)]))
 
 let main_service_handler target_repo_opt post_args =
@@ -35,6 +34,8 @@ let main_service_handler target_repo_opt post_args =
 				| `Assoc(args_list) ->
 					let repo_state = parse_json_arguments_list args_list in
 					let target_repository = do_sync repo_state target_repo_opt in
+					let _ = Ocsigen_messages.accesslog ("Has synced " ^ (args_str (repo_state.repository.name))
+						^ " " ^ (args_str (repo_state.repository.source_http_url)) ^ " with " ^ target_repository) in
 					Lwt.return
 						(html
 						~title:"syncgit"
@@ -70,7 +71,7 @@ let main_service_handler target_repo_opt post_args =
 let _ =
     let api_no_post = Syncgit_app.register_service
         ~path:[]
-        ~get_params:Eliom_parameter.(suffix (string "user" ** string "repo"))
+        ~get_params:Eliom_parameter.(suffix (opt (string "user" ** string "repo")))
         (fun v () -> Lwt.return
             (html
                 ~title:"syncgit"
@@ -80,7 +81,9 @@ let _ =
     Syncgit_app.register_post_service
         ~fallback:api_no_post
         ~post_params:Eliom_parameter.(raw_post_data)
-        (fun (user_get, repo_get) ->
-			let target_repo = Some (user_get ^ "/" ^ repo_get) in
-			main_service_handler target_repo
+        (function
+			| Some (user_get, repo_get) ->
+				let target_repo = Some (user_get ^ "/" ^ repo_get) in
+				main_service_handler target_repo
+			| None -> main_service_handler None
 		)
