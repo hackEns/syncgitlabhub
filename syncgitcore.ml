@@ -55,10 +55,16 @@ let split_char_increasing sep str f =
 	let rec sp_aux str old_str =
 		try
 			let i = String.index str sep in
-			(f (String.sub str 0 i)) ::
-			sp_aux (String.sub str (i+1) (String.length str - i - 1)) (old_str ^ (String.sub str 0 i))
+			let new_str = old_str ^ (String.sub str 0 (i+1)) in
+			let a = f new_str in
+			a ::
+			sp_aux (String.sub str (i+1) (String.length str - i - 1)) (new_str)
 		with Not_found ->
-			[f (old_str ^ str)]
+			let new_str = old_str ^ str in
+			if str = "" then
+				[]
+			else
+				[f new_str]
 	in sp_aux str ""
 
 (** Return (true, end_of_uri), or (false, "") if it is not a valid uri *)
@@ -75,7 +81,13 @@ let is_valid_uri s =
 			(false, "")
 
 let ensure_path_exist path =
-	split_char_increasing '/' path print_string
+	let _ = split_char_increasing '/' path (fun s ->
+		try
+			begin
+			Unix.mkdir s 0o740;
+			end
+		with
+			Unix.Unix_error(Unix.EEXIST, _, _) -> ()) in ()
 
 let _ = ensure_path_exist "/tmp/test/re-test/rere-test/"
 	
