@@ -3,3 +3,4 @@
 path_git = "/tmp/git"
 (* GitHub user *)
 github_user = hackens
+github_url = "git@github.com:"

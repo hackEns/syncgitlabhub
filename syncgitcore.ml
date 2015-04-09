@@ -2,6 +2,9 @@ exception BadArgumentsError
 exception NotAuthorizedError
 exception NotEnoughArgumentsError of string
 exception UnknownGitError
+exception UnknownGitCloneError
+exception UnknownGitPullError
+exception UnknownGitPushError
 exception InvalidArgument of string 
 
 type author = { name:string; email:string; }
@@ -12,7 +15,7 @@ type repository = {
 	source_http_url: string option;
 	source_ssh_url: string option;
 	name:string option;
-	target_ssh_url: string option;
+	target_repo: string option;
 	}
 
 type repository_state = {
@@ -20,7 +23,7 @@ type repository_state = {
 	commits: commit list;
 }
 
-let repository_empty = { source_http_url = None; source_ssh_url = None; name = None; target_ssh_url = None }
+let repository_empty = { source_http_url = None; source_ssh_url = None; name = None; target_repo = None }
 let repository_state_empty = {
 	repository = repository_empty;
 	commits = [];

@@ -4,30 +4,40 @@ open Unix
 open Lwt
 
 let do_sync repo_state = 
-	match repo_state.repository.name, repo_state.repository.source_http_url, repo_state.repository.target_ssh_url with
-	| Some name, Some source_http_url, Some target_ssh_url ->
+	match repo_state.repository.name, repo_state.repository.source_http_url, repo_state.repository.target_repo with
+	| Some name, Some source_http_url, Some target_repo ->
 		begin
 		print_string ("Syncing " ^ name);
 		let (valid, end_source_url) = is_valid_uri source_http_url in
 		if valid then
+		let project_path = Syncgitconfig.path_git ^ "/" ^ end_source_url in
 		  begin
-			(let project_path = Syncgitconfig.path_git ^ "/" ^ end_source_url in
+		  	begin
 			try
-				Unix.stat project_path; ()
+				begin
+				Unix.stat project_path;
+				Unix.chdir project_path;
+				let WEXITED i = Lwt_main.run (Lwt_process.exec ("git", [|"git";"pull";source_http_url|])) in
+				if i = 0 then ()
+				else raise UnknownGitPullError
+				end
 			with
-				| Unix.Unix_error(_) -> ensure_path_exist project_path; ()
-			);
+				| Unix.Unix_error(_) ->
+				begin
+				ensure_path_exist Syncgitconfig.path_git;
+				(* Now we can check if it has already been cloned *)
+				let WEXITED i = Lwt_main.run (Lwt_process.exec ("git", [|"git";"clone";source_http_url;project_path|])) in
+				if i = 0 then ()
+				else raise UnknownGitCloneError
+				end
+			end;
 
-			(* Now we can check if it has already been cloned *)
-			let WEXITED i = Lwt_main.run (Lwt_process.exec ("git", [|"git";"clone";source_http_url;"/tmp/git-repo"|])) in ();
+			Unix.chdir project_path;
+			let WEXITED i = Lwt_main.run (Lwt_process.exec ("git", [|"git";"push";Syncgitconfig.github_url ^ target_repo;|])) in
 			if i == 0 then
-				let WEXITED i = Lwt_main.run (Lwt_process.exec ("git", [|"git";"push";target_ssh_url;|])) in
-				if i == 0 then
-					()
-				else
-					raise UnknownGitError
+				()
 			else
-				raise UnknownGitError
+				raise UnknownGitPushError
 		  end
 		else
 			raise (InvalidArgument "source http url")

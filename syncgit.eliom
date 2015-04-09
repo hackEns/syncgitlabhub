@@ -6,6 +6,7 @@
 }}
 
 open Syncgitcore
+open Syncgitpush
 open Lwt
 
 module Syncgit_app =
@@ -53,6 +54,7 @@ let _ =
                                 (body [pcdata (Yojson.Safe.to_string (t)); pcdata "list"]))*)
                             | `Assoc(args_list) ->
 								let repo_state = parse_json_arguments_list args_list in
+								let _ = do_sync { repo_state with repository = { repo_state.repository with target_repo = Some (user_get ^ "/" ^ repo_get) } }  in
 								begin
 								match repo_state.repository.name with
 									| Some name ->
@@ -75,5 +77,11 @@ let _ =
 					send_error "Not authorized to sync this repository."
                 | InvalidArgument(a) ->
 					send_error ("Invalid argument: " ^ a ^ " missing")
+                | UnknownGitPushError ->
+					send_error ("Git push error.")
+                | UnknownGitPullError ->
+					send_error ("Git pull error.")
+                | UnknownGitCloneError ->
+					send_error ("Git clone error.")
 
         )
