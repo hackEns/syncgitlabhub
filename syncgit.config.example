@@ -4,3 +4,6 @@ path_git = "/tmp/git"
 (* GitHub user *)
 github_user = hackens
 github_url = "git@github.com:"
+
+(* Must be used for security reasons: otherwise, anyone get sync anything to your git repositories *)
+source_prefix = "someprefix://"

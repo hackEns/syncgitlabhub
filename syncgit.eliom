@@ -76,7 +76,7 @@ let _ =
                 | NotAuthorizedError ->
 					send_error "Not authorized to sync this repository."
                 | InvalidArgument(a) ->
-					send_error ("Invalid argument: " ^ a ^ " missing")
+					send_error ("Invalid argument: " ^ a ^ " missing or invalid")
                 | UnknownGitPushError ->
 					send_error ("Git push error.")
                 | UnknownGitPullError ->

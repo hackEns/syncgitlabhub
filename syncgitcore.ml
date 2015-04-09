@@ -70,6 +70,12 @@ let split_char_increasing sep str f =
 				[f new_str]
 	in sp_aux str ""
 
+(** Check wether the clone url is whitelisted. *)
+let ensure_can_clone s =
+	let prefix = Syncgitconfig.source_prefix in
+	let l = String.length prefix in
+	String.sub s 0 l = prefix
+
 (** Return (true, end_of_uri), or (false, "") if it is not a valid uri *)
 let is_valid_uri s =
 	let length = String.length s in
@@ -77,9 +83,9 @@ let is_valid_uri s =
 		(false, "")
 	else
 		if String.sub s 0 8 = "https://" then
-			(true, String.sub s 8 (length - 8))
+			(true && ensure_can_clone s, String.sub s 8 (length - 8))
 		else if String.sub s 0 7 = "http://" then
-			(true, String.sub s 8 (length - 8))
+			(true && ensure_can_clone s, String.sub s 7 (length - 7))
 		else
 			(false, "")
 
