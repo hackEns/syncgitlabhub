@@ -8,8 +8,8 @@ Hacking syncgit
 Some python code to generate post requests
 	import json
 	import requests
-	url = "http://localhost:8080/user/repo"
-	r = requests.post(url, data=json.dumps({"data":24}))
+	url = "http://localhost:8080/hackEns/PassPartout"
+	r = requests.post(url, data=json.dumps({"repository":{"name":"PassPartout","git_http_url":"https://git.eleves.ens.fr/hackens/PassManager.git"}}))
 	# then you can see the server answer, for instance in r.content
 
 Install the required module, with opam: ocsigenserver, eliom, config-file, yojson
