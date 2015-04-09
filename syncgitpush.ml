@@ -7,7 +7,12 @@ let do_sync repo_state target_repository_opt =
 	let target_repository = 
 		match target_repository_opt with
 		| Some t -> t
-		| None -> raise (InvalidArgument "git target")
+		| None ->
+			begin
+			match repo_state.repository.name with
+			| Some s -> Syncgitconfig.github_user ^ "/" ^ s
+			| None -> raise (InvalidArgument "source http url")
+			end
 	in
 	match repo_state.repository.name, repo_state.repository.source_http_url with
 	| Some name, Some source_http_url ->
@@ -28,13 +33,13 @@ let do_sync repo_state target_repository_opt =
 				end
 			with
 				| Unix.Unix_error(_) ->
-				begin
-				ensure_path_exist Syncgitconfig.path_git;
-				(* Now we can check if it has already been cloned *)
-				let WEXITED i = Lwt_main.run (Lwt_process.exec ("git", [|"git";"clone";source_http_url;project_path|])) in
-				if i = 0 then ()
-				else raise UnknownGitCloneError
-				end
+					begin
+					ensure_path_exist Syncgitconfig.path_git;
+					(* Now we can check if it has already been cloned *)
+					let WEXITED i = Lwt_main.run (Lwt_process.exec ("git", [|"git";"clone";source_http_url;project_path|])) in
+					if i = 0 then ()
+					else raise UnknownGitCloneError
+					end
 			end;
 
 			Unix.chdir project_path;
@@ -52,8 +57,3 @@ let do_sync repo_state target_repository_opt =
 let launch_sync r =
 	Thread.create do_sync r
 
-
-(*let _ =
-	let r_ = { repository_empty with source_http_url = Some "https://git.eleves.ens.fr/hackens/PassManager.git"; name = Some "PassManager"; target_ssh_url = Some "/tmp/testgit"; } in
-	let r = { repository_state_empty with repository = r_; } in
-	launch_sync r; while true do Format.printf "test@."; Unix.sleep 1;done;*)
