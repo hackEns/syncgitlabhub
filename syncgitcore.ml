@@ -15,7 +15,6 @@ type repository = {
 	source_http_url: string option;
 	source_ssh_url: string option;
 	name:string option;
-	target_repo: string option;
 	}
 
 type repository_state = {
@@ -23,11 +22,15 @@ type repository_state = {
 	commits: commit list;
 }
 
-let repository_empty = { source_http_url = None; source_ssh_url = None; name = None; target_repo = None }
+let repository_empty = { source_http_url = None; source_ssh_url = None; name = None; }
 let repository_state_empty = {
 	repository = repository_empty;
 	commits = [];
 }
+
+let args_str = function
+	| Some s -> s
+	| None -> raise (InvalidArgument "")
 
 let rec parse_json_repository = function
 	| [] -> repository_empty

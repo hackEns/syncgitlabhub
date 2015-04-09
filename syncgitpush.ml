@@ -3,9 +3,14 @@ open Thread
 open Unix
 open Lwt
 
-let do_sync repo_state = 
-	match repo_state.repository.name, repo_state.repository.source_http_url, repo_state.repository.target_repo with
-	| Some name, Some source_http_url, Some target_repo ->
+let do_sync repo_state target_repository_opt = 
+	let target_repository = 
+		match target_repository_opt with
+		| Some t -> t
+		| None -> raise (InvalidArgument "git target")
+	in
+	match repo_state.repository.name, repo_state.repository.source_http_url with
+	| Some name, Some source_http_url ->
 		begin
 		print_string ("Syncing " ^ name);
 		let (valid, end_source_url) = is_valid_uri source_http_url in
@@ -33,16 +38,16 @@ let do_sync repo_state =
 			end;
 
 			Unix.chdir project_path;
-			let WEXITED i = Lwt_main.run (Lwt_process.exec ("git", [|"git";"push";Syncgitconfig.github_url ^ target_repo;|])) in
+			let WEXITED i = Lwt_main.run (Lwt_process.exec ("git", [|"git";"push";Syncgitconfig.github_url ^ target_repository;|])) in
 			if i == 0 then
-				()
+				target_repository
 			else
 				raise UnknownGitPushError
 		  end
 		else
 			raise (InvalidArgument "source http url")
 		end
-	| _ -> raise (NotEnoughArgumentsError "name, git source, git target")
+	| _ -> raise (NotEnoughArgumentsError "name, git source")
 
 let launch_sync r =
 	Thread.create do_sync r

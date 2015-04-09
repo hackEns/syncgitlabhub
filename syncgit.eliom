@@ -23,6 +23,48 @@ let send_error str =
     Lwt.return
         (html ~title:"error" (body [pcdata ("Error: " ^ str)]))
 
+let main_service_handler target_repo_opt post_args =
+	try
+		match post_args with
+		| _, (Some c) -> 
+			begin
+			(* FIXME: is 10000 ok for message length? *)
+			(Ocsigen_stream.string_of_stream 10000 (Ocsigen_stream.get c)) >>= fun (str) ->
+				let js = Yojson.Safe.from_string str in
+				match js with
+				| `Assoc(args_list) ->
+					let repo_state = parse_json_arguments_list args_list in
+					let target_repository = do_sync repo_state target_repo_opt in
+					Lwt.return
+						(html
+						~title:"syncgit"
+						(body [
+							pcdata "Has synced ";
+							pcdata (args_str (repo_state.repository.name));
+							pcdata " with ";
+							pcdata target_repository;
+							pcdata ".";
+							]))
+				| _ ->
+					raise BadArgumentsError
+			end
+		| _ -> raise BadArgumentsError
+	with
+		| BadArgumentsError ->
+			send_error "Data not sent in a supported format, probably not JSON."
+		| NotEnoughArgumentsError(a) ->
+			send_error ("Not enough arguments in the POST request: " ^ a ^ " missing")
+		| NotAuthorizedError ->
+			send_error "Not authorized to sync this repository."
+		| InvalidArgument(a) ->
+			send_error ("Invalid argument: " ^ a ^ " missing or invalid")
+		| UnknownGitPushError ->
+			send_error ("Git push error.")
+		| UnknownGitPullError ->
+			send_error ("Git pull error.")
+		| UnknownGitCloneError ->
+			send_error ("Git clone error.")
+
 
 
 let _ =
@@ -38,50 +80,7 @@ let _ =
     Syncgit_app.register_post_service
         ~fallback:api_no_post
         ~post_params:Eliom_parameter.(raw_post_data)
-        (fun (user_get, repo_get) post_args -> 
-            try
-                match post_args with
-                    | _, (Some c) -> 
-                        begin
-                        (* FIXME: is 10000 ok for message length? *)
-                        (Ocsigen_stream.string_of_stream 10000 (Ocsigen_stream.get c)) >>= fun (str) ->
-                            let js = Yojson.Safe.from_string str in
-                            match js with
-                            (*| `List(t::q) -> 
-                                Lwt.return
-                                (html
-                                ~title:"syncgit"
-                                (body [pcdata (Yojson.Safe.to_string (t)); pcdata "list"]))*)
-                            | `Assoc(args_list) ->
-								let repo_state = parse_json_arguments_list args_list in
-								let _ = do_sync { repo_state with repository = { repo_state.repository with target_repo = Some (user_get ^ "/" ^ repo_get) } }  in
-								begin
-								match repo_state.repository.name with
-									| Some name ->
-										Lwt.return
-										(html
-										~title:"syncgit"
-										(body [pcdata "Must sync "; pcdata name; pcdata "with "; pcdata (user_get ^ "/" ^ repo_get);]))
-									| _ -> raise (NotEnoughArgumentsError "name")
-								end
-                            | _ ->
-                                raise BadArgumentsError
-                    end
-                    | _ -> raise BadArgumentsError
-            with
-                | BadArgumentsError ->
-					send_error "Data not sent in a supported format, probably not JSON."
-                | NotEnoughArgumentsError(a) ->
-					send_error ("Not enough arguments in the POST request: " ^ a ^ " missing")
-                | NotAuthorizedError ->
-					send_error "Not authorized to sync this repository."
-                | InvalidArgument(a) ->
-					send_error ("Invalid argument: " ^ a ^ " missing or invalid")
-                | UnknownGitPushError ->
-					send_error ("Git push error.")
-                | UnknownGitPullError ->
-					send_error ("Git pull error.")
-                | UnknownGitCloneError ->
-					send_error ("Git clone error.")
-
-        )
+        (fun (user_get, repo_get) ->
+			let target_repo = Some (user_get ^ "/" ^ repo_get) in
+			main_service_handler target_repo
+		)
