@@ -1,3 +1,4 @@
+(* (c) Syncgit - Lucas Baudin <lucas.baudin@ens.fr> – 2015 - see LICENSE file. *)
 {shared{
   open Eliom_lib
   open Eliom_content

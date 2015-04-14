@@ -1,3 +1,4 @@
+(* (c) Syncgit - Lucas Baudin <lucas.baudin@ens.fr> – 2015 - see LICENSE file. *)
 open Config_file
 
 let conf = new group
